@@ -4,6 +4,9 @@ import '../widgets/summary_card.dart';
 import '../models/transaction.dart';
 import '../db/db_helper.dart';
 import '../screens/add_transaction_page.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/transaction_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,19 +17,21 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final dbHelper = DatabaseHelper();
-  List<TransactionModel> transactions = [];
+  late Future transactionsFuture;
 
   @override
   void initState() {
     super.initState();
-    _loadTransactions();
+    transactionsFuture = _loadTransactions();
   }
 
-  Future<void> _loadTransactions() async {
-    final data = await dbHelper.getAllTransactions();
-    setState(() {
-      transactions = data;
-    });
+  Future _loadTransactions() {
+    print('_loadTransactions called');
+    transactionsFuture = Provider.of<TransactionProvider>(
+      context,
+      listen: false,
+    ).getTransactions();
+    return transactionsFuture;
   }
 
   Future<void> _openAddTransaction() async {
@@ -40,7 +45,7 @@ class _HomePageState extends State<HomePage> {
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-        child: AddTransactionSheet(onTransactionAdded: _loadTransactions),
+        child: AddTransactionSheet(onTransactionAdded: () {}),
       ),
     );
   }
@@ -55,36 +60,65 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SummaryCard(),
-            const SizedBox(height: 20),
-            const Text(
-              'Recent Transactions',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            ListView.builder(
-              physics:
-                  const NeverScrollableScrollPhysics(), // prevent nested scroll conflict
-              shrinkWrap: true, // let it fit inside the scroll view
-              itemCount: transactions.length,
-              itemBuilder: (context, index) {
-                final tx = transactions[index];
-                return TransactionItem(
-                  title: tx.title,
-                  amount: tx.amount,
-                  category: tx.category,
-                  date: tx.date,
-                  type: tx.type.name,
-                );
-              },
-            ),
-          ],
-        ),
+      body: FutureBuilder(
+        future: transactionsFuture,
+        builder: (ctx, snapshot) {
+          // Show a loading spinner while waiting for data.
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // Show an error message if something went wrong.
+          if (snapshot.hasError) {
+            return Center(child: Text('An error occurred: ${snapshot.error}'));
+          }
+
+          // Once data is fetched, build the list using a Consumer.
+          // The Consumer ensures the list rebuilds when you add/delete items,
+          // without re-running the FutureBuilder.
+          return Consumer<TransactionProvider>(
+            builder: (ctx, transactionProvider, child) {
+              final transactions = transactionProvider.transactions;
+              return transactions.isEmpty
+                  ? const Center(child: Text('No transactions yet.'))
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SummaryCard(),
+                          const SizedBox(height: 20),
+                          const Text(
+                            'Recent Transactions',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          ListView.builder(
+                            physics:
+                                const NeverScrollableScrollPhysics(), // prevent nested scroll conflict
+                            shrinkWrap:
+                                true, // let it fit inside the scroll view
+                            itemCount: transactions.length,
+                            itemBuilder: (context, index) {
+                              final tx = transactions[index];
+                              return TransactionItem(
+                                title: tx.title,
+                                amount: tx.amount,
+                                category: tx.category,
+                                date: tx.date,
+                                type: tx.type.name,
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+            },
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.indigo,

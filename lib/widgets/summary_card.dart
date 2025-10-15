@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../db/db_helper.dart';
 import '../models/transaction.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/transaction_provider.dart';
 
 class SummaryCard extends StatefulWidget {
   const SummaryCard({super.key});
@@ -12,7 +15,7 @@ class SummaryCard extends StatefulWidget {
 class _SummaryCardState extends State<SummaryCard> {
   final dbHelper = DatabaseHelper();
 
-  double total = 0.0;
+  late Future totalFuture;
   double expense = 0.0;
   double income = 0.0;
   double shopping = 0.0;
@@ -21,66 +24,88 @@ class _SummaryCardState extends State<SummaryCard> {
   @override
   void initState() {
     super.initState();
-    _loadSummary();
+    totalFuture = _obtainBalanceFuture();
+    // _loadSummary();
   }
 
-  Future<void> _loadSummary() async {
-    double t = await dbHelper.getBanlance();
-    double exp = await dbHelper.getExpense();
-    double inc = await dbHelper.getIncome();
-
-    setState(() {
-      total = t;
-      expense = exp;
-      income = inc;
-    });
+  Future _obtainBalanceFuture() {
+    print('_obtainBalanceFuture called');
+    return Provider.of<TransactionProvider>(
+      context,
+      listen: false,
+    ).getBanlance();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 3,
-      color: Colors.indigo,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Total Balance",
-              style: TextStyle(color: Colors.white70, fontSize: 16),
-            ),
-            SizedBox(height: 8),
-            Text(
-              "\৳${total.toString()}",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
+    return FutureBuilder(
+      future: totalFuture,
+      builder: (ctx, snapshot) {
+        // Show a loading spinner while waiting for data.
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        // Show an error message if something went wrong.
+        if (snapshot.hasError) {
+          return Center(child: Text('An error occurred: ${snapshot.error}'));
+        }
+
+        // Once data is fetched, build the list using a Consumer.
+        // The Consumer ensures the list rebuilds when you add/delete items,
+        // without re-running the FutureBuilder.
+        return Consumer<TransactionProvider>(
+          builder: (ctx, transactionProvider, child) {
+            final total = transactionProvider.total;
+            return Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-            ),
-            SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _SummaryItem(
-                  label: "Income",
-                  amount: "\৳${income.toString()}",
-                  color: Colors.greenAccent,
-                  icon: Icons.arrow_upward,
+              elevation: 3,
+              color: Colors.indigo,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Total Balance",
+                      style: TextStyle(color: Colors.white70, fontSize: 16),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      "\৳${total.toString()}",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _SummaryItem(
+                          label: "Income",
+                          amount: "\৳${income.toString()}",
+                          color: Colors.greenAccent,
+                          icon: Icons.arrow_upward,
+                        ),
+                        _SummaryItem(
+                          label: "Expense",
+                          amount: "\৳${expense.toString()}",
+                          color: Colors.redAccent,
+                          icon: Icons.arrow_downward,
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                _SummaryItem(
-                  label: "Expense",
-                  amount: "\৳${expense.toString()}",
-                  color: Colors.redAccent,
-                  icon: Icons.arrow_downward,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:expense_tracer/models/transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_swipe_action_cell/flutter_swipe_action_cell.dart';
 
 class TransactionItem extends StatelessWidget {
   final String title;
@@ -59,32 +60,74 @@ class TransactionItem extends StatelessWidget {
     final color = _getCategoryColor(category);
     final isExpense = type == TransactionTypes.expense.name;
     final txAmount = isExpense ? -amount : amount;
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: color.withValues(alpha: 0.2),
-          foregroundColor: Colors.white,
-          radius: 24,
-          child: Icon(icon, color: color, size: 24),
+    return SwipeActionCell(
+      key: ObjectKey(title),
+      trailingActions: <SwipeAction>[
+        SwipeAction(
+          content: _getIconButton(Colors.grey, Icons.edit),
+          onTap: (CompletionHandler handler) async {
+            handler(false); // false means don't close the cell
+          },
+          color: Colors.transparent,
         ),
-        title: Text(capitalize(title)),
-        // subtitle: Text(
-        //   "${date.toLocal().toString().split(' ')[0]} • $category",
-        // ),
-        subtitle: Text(
-          '$category • ${DateFormat('MMM d, yyyy – hh:mm a').format(DateTime.parse(date))}',
-          style: TextStyle(fontSize: 12),
+        SwipeAction(
+          content: _getIconButton(Colors.red, Icons.delete),
+          onTap: (CompletionHandler handler) async {
+            await handler(true);
+
+            // Remove the item from your data source and update the UI
+            // setState(() {
+            //   _items.removeAt(index);
+            // });
+
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text("$title deleted.")));
+          },
+          color: Colors.transparent,
         ),
-        trailing: Text(
-          "${isExpense ? '-' : '+'}\৳${txAmount.toStringAsFixed(2)}",
-          style: TextStyle(
-            color: isExpense ? Colors.redAccent : Colors.green,
-            fontWeight: FontWeight.bold,
+      ],
+      child: Card(
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: color.withValues(alpha: 0.2),
+            foregroundColor: Colors.white,
+            radius: 24,
+            child: Icon(icon, color: color, size: 24),
+          ),
+          title: Text(capitalize(title)),
+          // subtitle: Text(
+          //   "${date.toLocal().toString().split(' ')[0]} • $category",
+          // ),
+          subtitle: Text(
+            '$category • ${DateFormat('MMM d, yyyy – hh:mm a').format(DateTime.parse(date))}',
+            style: TextStyle(fontSize: 12),
+          ),
+          trailing: Text(
+            "${isExpense ? '-' : '+'}\৳${txAmount.toStringAsFixed(2)}",
+            style: TextStyle(
+              color: isExpense ? Colors.redAccent : Colors.green,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _getIconButton(color, icon) {
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(25),
+
+        /// set you real bg color in your content
+        color: color,
+      ),
+      child: Icon(icon, color: Colors.white),
     );
   }
 }

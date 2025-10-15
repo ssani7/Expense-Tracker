@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../db/db_helper.dart';
 import '../models/transaction.dart';
+import 'package:provider/provider.dart';
+import '../providers/transaction_provider.dart';
 
 class AddTransactionSheet extends StatefulWidget {
   final VoidCallback onTransactionAdded;
@@ -31,12 +33,14 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
             : double.parse(_amountController.text),
       );
 
-      await _dbHelper.insertTransaction(newTx);
+      // await _dbHelper.insertTransaction(newTx);
+
       widget.onTransactionAdded();
+      context.read<TransactionProvider>().addTransaction(newTx);
       Navigator.pop(context);
-      setState(() {
-        // Triggers build() and your SummaryCard will reload
-      });
+      // setState(() {
+      //   // Triggers build() and your SummaryCard will reload
+      // });
     }
   }
 

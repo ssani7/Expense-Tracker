@@ -36,7 +36,10 @@ class _MainPageState extends State<MainPage> {
         showUnselectedLabels: true,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Add'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list),
+            label: 'Transactions',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'More'),
         ],
       ),
