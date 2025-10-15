@@ -79,6 +79,7 @@ class _HomePageState extends State<HomePage> {
                   amount: tx.amount,
                   category: tx.category,
                   date: tx.date,
+                  type: tx.type.name,
                 );
               },
             ),

@@ -1,9 +1,12 @@
+enum TransactionTypes { deposit, expense }
+
 class TransactionModel {
   final int? id;
   final String title;
   final double amount;
   final String category;
   final String date;
+  final TransactionTypes type;
 
   TransactionModel({
     this.id,
@@ -11,6 +14,7 @@ class TransactionModel {
     required this.amount,
     required this.category,
     required this.date,
+    required this.type,
   });
 
   // Convert a Transaction object into a Map.
@@ -21,6 +25,7 @@ class TransactionModel {
       'amount': amount,
       'category': category,
       'date': date,
+      'type': type.name,
     };
   }
 
@@ -34,6 +39,10 @@ class TransactionModel {
           : map['amount'] as double,
       category: map['category'] as String,
       date: map['date'] as String,
+      type: TransactionTypes.values.firstWhere(
+        (e) => e.name == map['type'],
+        orElse: () => TransactionTypes.expense, // fallback
+      ),
     );
   }
 

@@ -15,6 +15,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
   String _selectedCategory = 'Other';
+  TransactionTypes _transactionType = TransactionTypes.expense;
 
   final _dbHelper = DatabaseHelper();
 
@@ -22,15 +23,95 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     if (_formKey.currentState!.validate()) {
       final newTx = TransactionModel(
         title: _titleController.text,
-        amount: double.parse(_amountController.text),
         category: _selectedCategory,
         date: DateTime.now().toIso8601String(),
+        type: _transactionType,
+        amount: _transactionType == TransactionTypes.expense
+            ? double.parse(_amountController.text) * -1
+            : double.parse(_amountController.text),
       );
 
       await _dbHelper.insertTransaction(newTx);
       widget.onTransactionAdded();
       Navigator.pop(context);
+      setState(() {
+        // Triggers build() and your SummaryCard will reload
+      });
     }
+  }
+
+  Widget _buildExpenseTypeButton() {
+    final bool isSelected = _transactionType == TransactionTypes.expense;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _transactionType = TransactionTypes.expense;
+          });
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.redAccent : Colors.grey[200],
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Icons.money_off,
+                color: isSelected ? Colors.white : Colors.grey[700],
+              ),
+              const SizedBox(height: 5),
+              Text(
+                'Expense',
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.black87,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDepositTypeButton() {
+    final bool isSelected = _transactionType == TransactionTypes.deposit;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _transactionType = TransactionTypes.deposit;
+          });
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.green : Colors.grey[200],
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Icons.attach_money,
+                color: isSelected ? Colors.white : Colors.grey[700],
+              ),
+              const SizedBox(height: 5),
+              Text(
+                'Deposit',
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.black87,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildCategoryButton(String label, IconData icon) {
@@ -90,6 +171,11 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
               'Add Transaction',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [_buildExpenseTypeButton(), _buildDepositTypeButton()],
+            ),
+
             TextFormField(
               controller: _titleController,
               decoration: const InputDecoration(labelText: 'Title'),

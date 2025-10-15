@@ -1,7 +1,40 @@
 import 'package:flutter/material.dart';
+import '../db/db_helper.dart';
+import '../models/transaction.dart';
 
-class SummaryCard extends StatelessWidget {
+class SummaryCard extends StatefulWidget {
   const SummaryCard({super.key});
+
+  @override
+  State<SummaryCard> createState() => _SummaryCardState();
+}
+
+class _SummaryCardState extends State<SummaryCard> {
+  final dbHelper = DatabaseHelper();
+
+  double total = 0.0;
+  double expense = 0.0;
+  double income = 0.0;
+  double shopping = 0.0;
+  double other = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSummary();
+  }
+
+  Future<void> _loadSummary() async {
+    double t = await dbHelper.getBanlance();
+    double exp = await dbHelper.getExpense();
+    double inc = await dbHelper.getIncome();
+
+    setState(() {
+      total = t;
+      expense = exp;
+      income = inc;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,14 +46,14 @@ class SummaryCard extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Text(
               "Total Balance",
               style: TextStyle(color: Colors.white70, fontSize: 16),
             ),
             SizedBox(height: 8),
             Text(
-              "\$1,250.00",
+              "\৳${total.toString()}",
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 36,
@@ -33,13 +66,13 @@ class SummaryCard extends StatelessWidget {
               children: [
                 _SummaryItem(
                   label: "Income",
-                  amount: "\$2,000",
+                  amount: "\৳${income.toString()}",
                   color: Colors.greenAccent,
                   icon: Icons.arrow_upward,
                 ),
                 _SummaryItem(
                   label: "Expense",
-                  amount: "\$750",
+                  amount: "\৳${expense.toString()}",
                   color: Colors.redAccent,
                   icon: Icons.arrow_downward,
                 ),
@@ -74,8 +107,10 @@ class _SummaryItem extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label,
-                style: const TextStyle(color: Colors.white70, fontSize: 14)),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
+            ),
             Text(
               amount,
               style: TextStyle(
@@ -85,7 +120,7 @@ class _SummaryItem extends StatelessWidget {
               ),
             ),
           ],
-        )
+        ),
       ],
     );
   }

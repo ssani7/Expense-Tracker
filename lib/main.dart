@@ -1,7 +1,5 @@
 import 'package:expense_tracer/screens/main_page.dart';
 import 'package:flutter/material.dart';
-import 'screens/home_page.dart';
-import 'models/expense.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

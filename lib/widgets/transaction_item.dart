@@ -1,3 +1,4 @@
+import 'package:expense_tracer/models/transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -6,6 +7,7 @@ class TransactionItem extends StatelessWidget {
   final double amount;
   final String date;
   final String category;
+  final String type;
 
   const TransactionItem({
     super.key,
@@ -13,6 +15,7 @@ class TransactionItem extends StatelessWidget {
     required this.amount,
     required this.date,
     required this.category,
+    required this.type,
   });
 
   IconData _getCategoryIcon(String category) {
@@ -54,6 +57,8 @@ class TransactionItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final icon = _getCategoryIcon(category);
     final color = _getCategoryColor(category);
+    final isExpense = type == TransactionTypes.expense.name;
+    final txAmount = isExpense ? -amount : amount;
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -70,11 +75,12 @@ class TransactionItem extends StatelessWidget {
         // ),
         subtitle: Text(
           '$category • ${DateFormat('MMM d, yyyy – hh:mm a').format(DateTime.parse(date))}',
+          style: TextStyle(fontSize: 12),
         ),
         trailing: Text(
-          "-\৳${amount.toStringAsFixed(2)}",
-          style: const TextStyle(
-            color: Colors.redAccent,
+          "${isExpense ? '-' : '+'}\৳${txAmount.toStringAsFixed(2)}",
+          style: TextStyle(
+            color: isExpense ? Colors.redAccent : Colors.green,
             fontWeight: FontWeight.bold,
           ),
         ),

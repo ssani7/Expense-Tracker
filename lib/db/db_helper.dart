@@ -19,7 +19,7 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    return await openDatabase(path, version: 2, onCreate: _createDB);
   }
 
   Future _createDB(Database db, int version) async {
@@ -29,7 +29,8 @@ class DatabaseHelper {
         title TEXT,
         amount REAL,
         category TEXT,
-        date TEXT
+        date TEXT,
+        type TEXT NOT NULL DEFAULT 'expense'
       )
     ''');
   }
@@ -41,6 +42,41 @@ class DatabaseHelper {
       tx.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+  }
+
+  Future<double> getBanlance() async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT SUM(amount) as total FROM transactions',
+    );
+    print('balance');
+    print(result);
+    double total = result[0]['total'] != null
+        ? result[0]['total'] as double
+        : 0.0;
+    return total;
+  }
+
+  Future<double> getExpense() async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT SUM(amount) as total FROM transactions WHERE amount < 0',
+    );
+    double total = result[0]['total'] != null
+        ? result[0]['total'] as double
+        : 0.0;
+    return total;
+  }
+
+  Future<double> getIncome() async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT SUM(amount) as total FROM transactions WHERE amount > 0',
+    );
+    double total = result[0]['total'] != null
+        ? result[0]['total'] as double
+        : 0.0;
+    return total;
   }
 
   Future<List<TransactionModel>> getAllTransactions() async {
