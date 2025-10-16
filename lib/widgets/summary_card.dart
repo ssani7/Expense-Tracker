@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../db/db_helper.dart';
 import '../models/transaction.dart';
 import 'package:provider/provider.dart';
-
+import 'package:intl/intl.dart';
 import '../providers/transaction_provider.dart';
 
 class SummaryCard extends StatefulWidget {
@@ -29,15 +29,16 @@ class _SummaryCardState extends State<SummaryCard> {
   }
 
   Future _obtainBalanceFuture() {
-    print('_obtainBalanceFuture called');
     return Provider.of<TransactionProvider>(
       context,
       listen: false,
-    ).getBanlance();
+    ).getSummary();
   }
 
   @override
   Widget build(BuildContext context) {
+    final bdFormat = NumberFormat.currency(locale: 'en_BD', symbol: '৳');
+
     return FutureBuilder(
       future: totalFuture,
       builder: (ctx, snapshot) {
@@ -57,6 +58,9 @@ class _SummaryCardState extends State<SummaryCard> {
         return Consumer<TransactionProvider>(
           builder: (ctx, transactionProvider, child) {
             final total = transactionProvider.total;
+            final totalExpense = transactionProvider.expense;
+            final totalIncome = transactionProvider.deposit;
+
             return Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -74,7 +78,7 @@ class _SummaryCardState extends State<SummaryCard> {
                     ),
                     SizedBox(height: 8),
                     Text(
-                      "\৳${total.toString()}",
+                      bdFormat.format(total),
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 36,
@@ -87,13 +91,13 @@ class _SummaryCardState extends State<SummaryCard> {
                       children: [
                         _SummaryItem(
                           label: "Income",
-                          amount: "\৳${income.toString()}",
+                          amount: bdFormat.format(totalIncome),
                           color: Colors.greenAccent,
                           icon: Icons.arrow_upward,
                         ),
                         _SummaryItem(
                           label: "Expense",
-                          amount: "\৳${expense.toString()}",
+                          amount: bdFormat.format(totalExpense),
                           color: Colors.redAccent,
                           icon: Icons.arrow_downward,
                         ),

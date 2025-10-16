@@ -35,6 +35,8 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
 
       // await _dbHelper.insertTransaction(newTx);
 
+      print('amount');
+      print(newTx.amount);
       widget.onTransactionAdded();
       context.read<TransactionProvider>().addTransaction(newTx);
       Navigator.pop(context);
