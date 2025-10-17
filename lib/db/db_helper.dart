@@ -49,8 +49,6 @@ class DatabaseHelper {
     final result = await db.rawQuery(
       'SELECT SUM(amount) as total FROM transactions',
     );
-    print('balance');
-    print(result);
     double total = result[0]['total'] != null
         ? result[0]['total'] as double
         : 0.0;
@@ -60,7 +58,7 @@ class DatabaseHelper {
   Future<double> getExpense() async {
     final db = await database;
     final result = await db.rawQuery(
-      'SELECT SUM(amount) as total FROM transactions WHERE amount < 0',
+      'SELECT SUM(amount) as total FROM transactions WHERE type = \'expense\'',
     );
     double total = result[0]['total'] != null
         ? result[0]['total'] as double
@@ -71,7 +69,18 @@ class DatabaseHelper {
   Future<double> getIncome() async {
     final db = await database;
     final result = await db.rawQuery(
-      'SELECT SUM(amount) as total FROM transactions WHERE amount > 0',
+      'SELECT SUM(amount) as total FROM transactions WHERE type = \'deposit\'',
+    );
+    double total = result[0]['total'] != null
+        ? result[0]['total'] as double
+        : 0.0;
+    return total;
+  }
+
+  Future<double> getLends() async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT SUM(amount) as total FROM transactions WHERE (type = \'lendGive\' OR type = \'lendTake\')',
     );
     double total = result[0]['total'] != null
         ? result[0]['total'] as double

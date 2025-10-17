@@ -1,7 +1,7 @@
+import 'package:expense_tracer/models/transaction.dart';
 import 'package:flutter/material.dart';
 import '../widgets/transaction_item.dart';
 import '../widgets/summary_card.dart';
-import '../models/transaction.dart';
 import '../db/db_helper.dart';
 import '../screens/add_transaction_page.dart';
 import 'package:provider/provider.dart';
@@ -26,7 +26,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future _loadTransactions() {
-    print('_loadTransactions called');
     transactionsFuture = Provider.of<TransactionProvider>(
       context,
       listen: false,
@@ -73,49 +72,12 @@ class _HomePageState extends State<HomePage> {
             return Center(child: Text('An error occurred: ${snapshot.error}'));
           }
 
-          // Once data is fetched, build the list using a Consumer.
-          // The Consumer ensures the list rebuilds when you add/delete items,
-          // without re-running the FutureBuilder.
           return Consumer<TransactionProvider>(
             builder: (ctx, transactionProvider, child) {
               final transactions = transactionProvider.transactions;
               return transactions.isEmpty
                   ? const Center(child: Text('No transactions yet.'))
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SummaryCard(),
-                          const SizedBox(height: 20),
-                          const Text(
-                            'Recent Transactions',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          ListView.builder(
-                            physics:
-                                const NeverScrollableScrollPhysics(), // prevent nested scroll conflict
-                            shrinkWrap:
-                                true, // let it fit inside the scroll view
-                            itemCount: transactions.length,
-                            itemBuilder: (context, index) {
-                              final tx = transactions[index];
-                              return TransactionItem(
-                                title: tx.title,
-                                amount: tx.amount,
-                                category: tx.category,
-                                date: tx.date,
-                                type: tx.type.name,
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    );
+                  : HomeBody(transactions: transactions);
             },
           );
         },
@@ -131,26 +93,44 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// class HomeBody extends StatelessWidget {
-//   const HomeBody({super.key});
+class HomeBody extends StatelessWidget {
+  late List<TransactionModel> transactions = [];
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return SingleChildScrollView(
-//       padding: const EdgeInsets.all(16),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           const SummaryCard(),
-//           const SizedBox(height: 20),
-//           const Text(
-//             'Recent Transactions',
-//             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-//           ),
-//           const SizedBox(height: 10),
-//           ...List.generate(5, (index) => const TransactionItem())
-//         ],
-//       ),
-//     );
-//   }
-// }
+  HomeBody({super.key, required this.transactions});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SummaryCard(),
+          const SizedBox(height: 20),
+          const Text(
+            'Recent Transactions',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 10),
+          ListView.builder(
+            physics:
+                const NeverScrollableScrollPhysics(), // prevent nested scroll conflict
+            shrinkWrap: true, // let it fit inside the scroll view
+            itemCount: transactions.length,
+            itemBuilder: (context, index) {
+              final tx = transactions[index];
+              return TransactionItem(
+                id: tx.id!,
+                title: tx.title,
+                amount: tx.amount,
+                category: tx.category,
+                date: tx.date,
+                type: tx.type.name,
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}

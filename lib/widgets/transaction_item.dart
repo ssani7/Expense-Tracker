@@ -1,9 +1,12 @@
 import 'package:expense_tracer/models/transaction.dart';
+import 'package:expense_tracer/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_swipe_action_cell/flutter_swipe_action_cell.dart';
+import 'package:provider/provider.dart';
 
 class TransactionItem extends StatelessWidget {
+  final int id;
   final String title;
   final double amount;
   final String date;
@@ -12,6 +15,7 @@ class TransactionItem extends StatelessWidget {
 
   const TransactionItem({
     super.key,
+    required this.id,
     required this.title,
     required this.amount,
     required this.date,
@@ -54,35 +58,65 @@ class TransactionItem extends StatelessWidget {
     return "${text[0].toUpperCase()}${text.substring(1).toLowerCase()}";
   }
 
+  String formatToBDT(amount) {
+    final bdFormat = NumberFormat.currency(locale: 'en_BD', symbol: '৳');
+
+    return bdFormat.format(amount);
+  }
+
   @override
   Widget build(BuildContext context) {
     final icon = _getCategoryIcon(category);
     final color = _getCategoryColor(category);
-    final isExpense = type == TransactionTypes.expense.name;
-    final txAmount = isExpense ? -amount : amount;
+    final isNegative = amount < 0;
+
     return SwipeActionCell(
       key: ObjectKey(title),
       trailingActions: <SwipeAction>[
-        SwipeAction(
-          content: _getIconButton(Colors.grey, Icons.edit),
-          onTap: (CompletionHandler handler) async {
-            handler(false); // false means don't close the cell
-          },
-          color: Colors.transparent,
-        ),
+        // SwipeAction(
+        //   content: _getIconButton(Colors.grey, Icons.edit),
+        //   onTap: (CompletionHandler handler) async {
+        //     handler(false); // false means don't close the cell
+        //   },
+        //   color: Colors.transparent,
+        // ),
         SwipeAction(
           content: _getIconButton(Colors.red, Icons.delete),
           onTap: (CompletionHandler handler) async {
-            await handler(true);
+            final bool? confirmed = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Delete Transaction'),
+                content: Text(
+                  'Are you sure you want to delete "$title" '
+                  '($amount)?',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false), // Cancel
+                    child: const Text('Cancel'),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                    ),
+                    onPressed: () => Navigator.pop(context, true), // Confirm
+                    child: const Text('Delete'),
+                  ),
+                ],
+              ),
+            );
 
-            // Remove the item from your data source and update the UI
-            // setState(() {
-            //   _items.removeAt(index);
-            // });
+            // If confirmed, delete the transaction
+            if (confirmed == true) {
+              await handler(true);
 
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text("$title deleted.")));
+              context.read<TransactionProvider>().deleteTransaction(id);
+
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text("$title deleted.")));
+            }
           },
           color: Colors.transparent,
         ),
@@ -106,9 +140,9 @@ class TransactionItem extends StatelessWidget {
             style: TextStyle(fontSize: 12),
           ),
           trailing: Text(
-            "${isExpense ? '-' : '+'}\৳${txAmount.toStringAsFixed(2)}",
+            '${!isNegative ? '+' : ''}${formatToBDT(amount)}',
             style: TextStyle(
-              color: isExpense ? Colors.redAccent : Colors.green,
+              color: isNegative ? Colors.redAccent : Colors.green,
               fontWeight: FontWeight.bold,
             ),
           ),

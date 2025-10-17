@@ -1,4 +1,4 @@
-enum TransactionTypes { deposit, expense }
+enum TransactionTypes { deposit, expense, lendGive, lendTake }
 
 class TransactionModel {
   final int? id;

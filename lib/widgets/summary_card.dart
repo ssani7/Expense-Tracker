@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../db/db_helper.dart';
-import '../models/transaction.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/transaction_provider.dart';
@@ -19,7 +18,7 @@ class _SummaryCardState extends State<SummaryCard> {
   double expense = 0.0;
   double income = 0.0;
   double shopping = 0.0;
-  double other = 0.0;
+  double lends = 0.0;
 
   @override
   void initState() {
@@ -52,60 +51,80 @@ class _SummaryCardState extends State<SummaryCard> {
           return Center(child: Text('An error occurred: ${snapshot.error}'));
         }
 
-        // Once data is fetched, build the list using a Consumer.
-        // The Consumer ensures the list rebuilds when you add/delete items,
-        // without re-running the FutureBuilder.
         return Consumer<TransactionProvider>(
           builder: (ctx, transactionProvider, child) {
             final total = transactionProvider.total;
             final totalExpense = transactionProvider.expense;
             final totalIncome = transactionProvider.deposit;
+            final topay = transactionProvider.lends > 0;
+            final totalLends = transactionProvider.lends * (!topay ? -1 : 1);
 
-            return Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: 3,
-              color: Colors.indigo,
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Total Balance",
-                      style: TextStyle(color: Colors.white70, fontSize: 16),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      bdFormat.format(total),
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            return Stack(
+              children: [
+                Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 3,
+                  color: Colors.indigo,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _SummaryItem(
-                          label: "Income",
-                          amount: bdFormat.format(totalIncome),
-                          color: Colors.greenAccent,
-                          icon: Icons.arrow_upward,
+                        Text(
+                          "Total Balance",
+                          style: TextStyle(color: Colors.white70, fontSize: 16),
                         ),
-                        _SummaryItem(
-                          label: "Expense",
-                          amount: bdFormat.format(totalExpense),
-                          color: Colors.redAccent,
-                          icon: Icons.arrow_downward,
+                        SizedBox(height: 8),
+                        Text(
+                          bdFormat.format(total),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 16),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _SummaryItem(
+                              label: "Income",
+                              amount: bdFormat.format(totalIncome),
+                              color: Colors.greenAccent,
+                              icon: Icons.arrow_upward,
+                            ),
+                            _SummaryItem(
+                              label: "Expense",
+                              amount: bdFormat.format(totalExpense),
+                              color: Colors.redAccent,
+                              icon: Icons.arrow_downward,
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
+                Positioned(
+                  top: 20,
+                  right: 20,
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment.end, // 👈 aligns text to the right
+                    children: [
+                      _SummaryItem(
+                        label: topay ? "Payable" : "Recieveavle",
+                        amount: bdFormat.format(totalLends),
+                        color: topay ? Colors.red : Colors.greenAccent,
+                        icon: Icons.arrow_upward,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             );
           },
         );
@@ -134,7 +153,7 @@ class _SummaryItem extends StatelessWidget {
         Icon(icon, color: color, size: 20),
         const SizedBox(width: 6),
         Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
               label,
@@ -142,6 +161,7 @@ class _SummaryItem extends StatelessWidget {
             ),
             Text(
               amount,
+              textAlign: TextAlign.end,
               style: TextStyle(
                 color: color,
                 fontWeight: FontWeight.bold,

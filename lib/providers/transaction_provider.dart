@@ -1,5 +1,7 @@
 // lib/providers/transaction_provider.dart
 
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import '../models/transaction.dart'; // Make sure this path is correct
 import '../db/db_helper.dart';
@@ -13,6 +15,7 @@ class TransactionProvider with ChangeNotifier {
   double total = 0.0;
   double expense = 0.0;
   double deposit = 0.0;
+  double lends = 0.0;
 
   final dbHelper = DatabaseHelper();
 
@@ -27,26 +30,23 @@ class TransactionProvider with ChangeNotifier {
     total = await dbHelper.getBanlance();
     expense = await dbHelper.getExpense();
     deposit = await dbHelper.getIncome();
-    print('get balance called');
-    print(total);
-    // This is the crucial part: it tells any listening widgets to rebuild.
+    lends = await dbHelper.getLends();
+
     notifyListeners();
   }
 
-  void deleteTransaction(String id) {
-    _transactions.removeWhere((tx) => tx.id == id);
-    // This is the crucial part: it tells any listening widgets to rebuild.
-    notifyListeners();
+  void deleteTransaction(int id) async {
+    await dbHelper.deleteTransaction(id);
+    getTransactions();
+    getSummary();
   }
 
   void addTransaction(TransactionModel newTransaction) async {
     await dbHelper.insertTransaction(
       newTransaction,
     ); // Add new transaction at the top
-    print('addTransaction called');
     getTransactions();
     getSummary();
-    notifyListeners();
   }
 
   // You can add your edit logic here as well
