@@ -57,7 +57,9 @@ class _SummaryCardState extends State<SummaryCard> {
             final totalExpense = transactionProvider.expense;
             final totalIncome = transactionProvider.deposit;
             final topay = transactionProvider.lends > 0;
-            final totalLends = transactionProvider.lends * (!topay ? -1 : 1);
+            final totalLends =
+                transactionProvider.lends *
+                (topay || transactionProvider.lends == 0 ? 1 : -1);
 
             return Stack(
               children: [
@@ -101,6 +103,7 @@ class _SummaryCardState extends State<SummaryCard> {
                               amount: bdFormat.format(totalExpense),
                               color: Colors.redAccent,
                               icon: Icons.arrow_downward,
+                              rightEnd: true,
                             ),
                           ],
                         ),
@@ -120,6 +123,7 @@ class _SummaryCardState extends State<SummaryCard> {
                         amount: bdFormat.format(totalLends),
                         color: topay ? Colors.red : Colors.greenAccent,
                         icon: Icons.arrow_upward,
+                        rightEnd: true,
                       ),
                     ],
                   ),
@@ -138,35 +142,45 @@ class _SummaryItem extends StatelessWidget {
   final String amount;
   final Color color;
   final IconData icon;
+  final bool rightEnd;
 
   const _SummaryItem({
     required this.label,
     required this.amount,
     required this.color,
     required this.icon,
+    this.rightEnd = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: color, size: 20),
         const SizedBox(width: 6),
         Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
+          crossAxisAlignment: rightEnd
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
           children: [
             Text(
               label,
               style: const TextStyle(color: Colors.white70, fontSize: 14),
             ),
-            Text(
-              amount,
-              textAlign: TextAlign.end,
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: color, size: 20),
+                Text(
+                  amount,
+                  textAlign: TextAlign.end,
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

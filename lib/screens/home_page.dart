@@ -100,6 +100,8 @@ class HomeBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("transactions");
+    print(transactions);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -121,7 +123,6 @@ class HomeBody extends StatelessWidget {
               final tx = transactions[index];
               return TransactionItem(
                 id: tx.id!,
-                title: tx.title,
                 amount: tx.amount,
                 category: tx.category,
                 date: tx.date,

@@ -20,6 +20,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     text: '50',
   );
   final TextEditingController _personNameController = TextEditingController();
+  final _categoryController = TextEditingController();
 
   TransactionTypes _transactionType = TransactionTypes.expense;
   String _selectedCategory = "Other";
@@ -102,25 +103,73 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     });
   }
 
+  final List<String> _categories = [
+    'Groceries',
+    'Transport',
+    'Bills',
+    'Entertainment',
+    'Loan',
+    'Income',
+  ];
+
+  void _onCategoryChanged() {
+    final text = _categoryController.text;
+
+    // Check if the text matches any category
+    if (_categories.contains(text)) {
+      // If it does, and it's not already selected, select it
+      if (_selectedCategory != text) {
+        setState(() {
+          _selectedCategory = text;
+        });
+      }
+    } else {
+      // If the text does not match any category,
+      // and a chip is still selected, deselect it.
+      if (_selectedCategory != null) {
+        setState(() {
+          _selectedCategory = "";
+        });
+      }
+    }
+  }
+
+  void _onCategorySelected(String category) {
+    setState(() {
+      // Check if the user is tapping the *already selected* chip
+      if (_selectedCategory == category) {
+        // If so, deselect it
+        _selectedCategory = "";
+        _categoryController.text = ""; // Clear the text field
+      } else {
+        // If tapping a new chip, select it
+        _selectedCategory = category;
+        _categoryController.text = category; // Update the text field
+      }
+    });
+  }
+
   // ✅ Your provided function (unchanged, now fully working)
   Future<void> _saveTransaction() async {
-    if (_formKey.currentState!.validate()) {
-      final newTx = TransactionModel(
-        title: _titleController.text.trim(),
-        category: _selectedCategory,
-        date: _selectedDateTime.toIso8601String(),
-        type: _transactionType,
-        amount:
-            (_transactionType == TransactionTypes.expense ||
-                _transactionType == TransactionTypes.lendGive)
-            ? double.parse(_amountController.text) * -1
-            : double.parse(_amountController.text),
-      );
+    // if (_formKey.currentState!.validate()) {
 
-      widget.onTransactionAdded();
-      context.read<TransactionProvider>().addTransaction(newTx);
-      Navigator.pop(context);
-    }
+    // }
+    print('iinsde save');
+    final newTx = TransactionModel(
+      title: _titleController.text.trim(),
+      category: _selectedCategory,
+      date: _selectedDateTime.toIso8601String(),
+      type: _transactionType,
+      amount:
+          (_transactionType == TransactionTypes.expense ||
+              _transactionType == TransactionTypes.lendGive)
+          ? double.parse(_amountController.text) * -1
+          : double.parse(_amountController.text),
+    );
+
+    widget.onTransactionAdded();
+    context.read<TransactionProvider>().addTransaction(newTx);
+    Navigator.pop(context);
   }
 
   @override
@@ -144,7 +193,6 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
               controller: scrollController,
               padding: const EdgeInsets.all(20),
               children: [
-                // 🔘 Handle bar
                 Center(
                   child: Container(
                     width: 40,
@@ -165,7 +213,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
 
                 // 🏷️ Title input
                 TextFormField(
-                  controller: _titleController,
+                  controller: _categoryController,
                   decoration: const InputDecoration(
                     labelText: 'Title',
                     border: OutlineInputBorder(),
@@ -175,6 +223,29 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                       : null,
                 ),
                 const SizedBox(height: 16),
+                Wrap(
+                  spacing: 8.0, // Horizontal space between chips
+                  runSpacing: 4.0, // Vertical space between lines
+                  children: _categories.map((category) {
+                    return ChoiceChip(
+                      label: Text(category),
+                      // Set the selected state based on our state variable
+                      selected: _selectedCategory == category,
+                      // Handle the tap event
+                      onSelected: (isSelected) {
+                        // We use our custom function to handle logic
+                        _onCategorySelected(category);
+                      },
+                      // Optional: Add styling for the selected chip
+                      selectedColor: Colors.blue[100],
+                      labelStyle: TextStyle(
+                        color: _selectedCategory == category
+                            ? Colors.blue[900]
+                            : Colors.black,
+                      ),
+                    );
+                  }).toList(),
+                ),
 
                 // 💰 Amount section
                 const Text(

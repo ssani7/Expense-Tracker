@@ -1,8 +1,10 @@
+import 'package:expense_tracer/models/lend.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/transaction.dart';
 
 class DatabaseHelper {
+  final tableLend = 'lends';
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   factory DatabaseHelper() => _instance;
   DatabaseHelper._internal();
@@ -24,13 +26,24 @@ class DatabaseHelper {
 
   Future _createDB(Database db, int version) async {
     await db.execute('''
+      CREATE TABLE $tableLend (
+        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+        person_name TEXT NOT NULL,
+        return_date TEXT NOT NULL,
+        returned INTEGER NOT NULL DEFAULT 0 
+      )
+      ''');
+
+    await db.execute('''
       CREATE TABLE transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT,
         amount REAL,
         category TEXT,
-        date TEXT,
-        type TEXT NOT NULL DEFAULT 'expense'
+        date TEXT NOT NULL,
+        type TEXT NOT NULL DEFAULT 'expense',uuuu
+        LendID INTEGER,
+        FOREIGN KEY (LendID) REFERENCES $tableLend (Id) ON DELETE SET NULL
       )
     ''');
   }
@@ -42,6 +55,11 @@ class DatabaseHelper {
       tx.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+  }
+
+  Future<int> addLend(Lend lend) async {
+    Database db = await database;
+    return await db.insert(tableLend, lend.toMap());
   }
 
   Future<double> getBanlance() async {

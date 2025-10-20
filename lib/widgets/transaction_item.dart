@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 
 class TransactionItem extends StatelessWidget {
   final int id;
-  final String title;
   final double amount;
   final String date;
   final String category;
@@ -16,7 +15,6 @@ class TransactionItem extends StatelessWidget {
   const TransactionItem({
     super.key,
     required this.id,
-    required this.title,
     required this.amount,
     required this.date,
     required this.category,
@@ -55,7 +53,8 @@ class TransactionItem extends StatelessWidget {
   }
 
   String capitalize(text) {
-    return "${text[0].toUpperCase()}${text.substring(1).toLowerCase()}";
+    // return "${text[0].toUpperCase()}${text.substring(1).toLowerCase()}";
+    return text;
   }
 
   String formatToBDT(amount) {
@@ -71,7 +70,7 @@ class TransactionItem extends StatelessWidget {
     final isNegative = amount < 0;
 
     return SwipeActionCell(
-      key: ObjectKey(title),
+      key: ObjectKey(category),
       trailingActions: <SwipeAction>[
         // SwipeAction(
         //   content: _getIconButton(Colors.grey, Icons.edit),
@@ -88,7 +87,7 @@ class TransactionItem extends StatelessWidget {
               builder: (context) => AlertDialog(
                 title: const Text('Delete Transaction'),
                 content: Text(
-                  'Are you sure you want to delete "$title" '
+                  'Are you sure you want to delete "$category" '
                   '($amount)?',
                 ),
                 actions: [
@@ -115,7 +114,7 @@ class TransactionItem extends StatelessWidget {
 
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(SnackBar(content: Text("$title deleted.")));
+              ).showSnackBar(SnackBar(content: Text("$category deleted.")));
             }
           },
           color: Colors.transparent,
@@ -131,12 +130,9 @@ class TransactionItem extends StatelessWidget {
             radius: 24,
             child: Icon(icon, color: color, size: 24),
           ),
-          title: Text(capitalize(title)),
-          // subtitle: Text(
-          //   "${date.toLocal().toString().split(' ')[0]} • $category",
-          // ),
+          title: Text(capitalize(category)),
           subtitle: Text(
-            '$category • ${DateFormat('MMM d, yyyy – hh:mm a').format(DateTime.parse(date))}',
+            DateFormat('MMM d, yyyy – hh:mm a').format(DateTime.parse(date)),
             style: TextStyle(fontSize: 12),
           ),
           trailing: Text(
