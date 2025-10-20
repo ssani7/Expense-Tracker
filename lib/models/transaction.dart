@@ -7,7 +7,7 @@ class TransactionModel {
   final String category;
   final String date;
   final TransactionTypes type;
-  int? lendID; // Foreign key
+  final int? LendID;
 
   TransactionModel({
     this.id,
@@ -16,7 +16,7 @@ class TransactionModel {
     required this.category,
     required this.date,
     required this.type,
-    this.lendID,
+    this.LendID,
   });
 
   // Convert a Transaction object into a Map.
@@ -28,7 +28,7 @@ class TransactionModel {
       'category': category,
       'date': date,
       'type': type.name,
-      'LendID': lendID,
+      'LendID': LendID,
     };
   }
 
@@ -36,6 +36,7 @@ class TransactionModel {
   factory TransactionModel.fromMap(Map<String, dynamic> map) {
     return TransactionModel(
       id: map['id'] as int?,
+      LendID: map['LendID'] as int?,
       title: map['title'] as String,
       amount: map['amount'] is int
           ? (map['amount'] as int).toDouble()
@@ -46,7 +47,6 @@ class TransactionModel {
         (e) => e.name == map['type'],
         orElse: () => TransactionTypes.expense, // fallback
       ),
-      lendID: map['LendID'],
     );
   }
 
@@ -58,40 +58,73 @@ class TransactionModel {
 
 class JoinedTransaction {
   // Transaction fields
-  final int transactionId;
+  final int? id;
+  final double amount;
   final String category;
-  final String type;
-  final DateTime createdDate;
+  final TransactionTypes type;
+  final String date;
 
   // Lend fields (nullable)
-  final int? lendID;
-  final String? personName;
-  final DateTime? returnDate;
+  int? lendID;
+  final String? return_date;
+  final String? person_name;
   final bool? returned;
 
   JoinedTransaction({
-    required this.transactionId,
+    this.id,
     required this.category,
     required this.type,
-    required this.createdDate,
+    required this.date,
+    required this.amount,
     this.lendID,
-    this.personName,
-    this.returnDate,
+    this.return_date,
+    this.person_name,
     this.returned,
   });
 
+  // Convert a Transaction object into a Map.
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'amount': amount,
+      'category': category,
+      'date': date,
+      'type': type.name,
+      'LendID': lendID,
+      'return_date': return_date,
+      'person_name': person_name,
+      'returned': returned,
+    };
+  }
+
   factory JoinedTransaction.fromMap(Map<String, dynamic> map) {
     return JoinedTransaction(
-      transactionId: map['t_id'], // Using alias from the query
+      id: map['id'], // Using alias from the query
       category: map['category'],
-      type: map['type'],
-      createdDate: DateTime.parse(map['created_date']),
+      type: TransactionTypes.values.firstWhere(
+        (e) => e.name == map['type'],
+        orElse: () => TransactionTypes.expense, // fallback
+      ),
+      amount: map['amount'],
+      date: map['date'],
       lendID: map['LendID'],
-      personName: map['person_name'], // Will be null if no join
-      returnDate: map['return_date'] != null
-          ? DateTime.parse(map['return_date'])
-          : null,
+      person_name: map['person_name'], // Will be null if no join
+      return_date: map['return_date'],
       returned: map['returned'] != null ? (map['returned'] == 1) : null,
+    );
+  }
+
+  TransactionModel joinedToTransaction(JoinedTransaction joined) {
+    return TransactionModel(
+      id: joined.id,
+      title: joined.person_name != null && joined.person_name!.isNotEmpty
+          ? '${joined.category} (${joined.person_name})'
+          : joined.category,
+      amount: joined.amount,
+      category: joined.category,
+      date: joined.date,
+      type: joined.type,
+      LendID: joined.lendID,
     );
   }
 }

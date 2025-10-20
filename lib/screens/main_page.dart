@@ -1,3 +1,4 @@
+import 'package:expense_tracer/screens/lends_page.dart';
 import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'menu_page.dart';
@@ -14,7 +15,7 @@ class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
 
   // Screens for each tab
-  final List<Widget> _screens = const [HomePage(), HomePage(), MenuPage()];
+  final List<Widget> _screens = const [HomePage(), LendsPage(), MenuPage()];
 
   void _onItemTapped(int index) {
     setState(() {

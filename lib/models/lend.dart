@@ -1,16 +1,11 @@
 // --- Model for Lend Table ---
 class Lend {
   int? id;
-  String personName;
-  DateTime returnDate;
+  String? personName;
+  String? returnDate;
   bool returned; // 0 = false, 1 = true
 
-  Lend({
-    this.id,
-    required this.personName,
-    required this.returnDate,
-    this.returned = false,
-  });
+  Lend({this.id, this.personName, this.returnDate, this.returned = false});
 
   // Convert a Lend object into a Map.
   // Used when inserting/updating data in the database.
@@ -18,8 +13,8 @@ class Lend {
     return {
       'Id': id,
       'person_name': personName,
-      'return_date': returnDate
-          .toIso8601String(), // Store DateTime as ISO String (TEXT)
+      'return_date': returnDate,
+      // .toIso8601String(), // Store DateTime as ISO String (TEXT)
       'returned': returned ? 1 : 0, // Store bool as INTEGER (0 or 1)
     };
   }
@@ -30,7 +25,7 @@ class Lend {
     return Lend(
       id: map['Id'],
       personName: map['person_name'],
-      returnDate: DateTime.parse(map['return_date']),
+      returnDate: map['return_date'],
       returned: map['returned'] == 1,
     );
   }

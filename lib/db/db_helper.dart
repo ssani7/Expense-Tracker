@@ -29,7 +29,7 @@ class DatabaseHelper {
       CREATE TABLE $tableLend (
         Id INTEGER PRIMARY KEY AUTOINCREMENT,
         person_name TEXT NOT NULL,
-        return_date TEXT NOT NULL,
+        return_date TEXT,
         returned INTEGER NOT NULL DEFAULT 0 
       )
       ''');
@@ -41,7 +41,7 @@ class DatabaseHelper {
         amount REAL,
         category TEXT,
         date TEXT NOT NULL,
-        type TEXT NOT NULL DEFAULT 'expense',uuuu
+        type TEXT NOT NULL DEFAULT 'expense',
         LendID INTEGER,
         FOREIGN KEY (LendID) REFERENCES $tableLend (Id) ON DELETE SET NULL
       )
@@ -64,9 +64,13 @@ class DatabaseHelper {
 
   Future<double> getBanlance() async {
     final db = await database;
-    final result = await db.rawQuery(
-      'SELECT SUM(amount) as total FROM transactions',
-    );
+    final result = await db.rawQuery('''SELECT SUM(t.amount) as total 
+        FROM transactions t
+        LEFT JOIN $tableLend l ON t.LendID = l.Id 
+        WHERE (l.returned = 0 OR l.returned IS NULL)
+      ''');
+    print('balance');
+    print(result);
     double total = result[0]['total'] != null
         ? result[0]['total'] as double
         : 0.0;
@@ -95,26 +99,83 @@ class DatabaseHelper {
     return total;
   }
 
-  Future<double> getLends() async {
+  Future<double> getLendsAmount() async {
     final db = await database;
-    final result = await db.rawQuery(
-      'SELECT SUM(amount) as total FROM transactions WHERE (type = \'lendGive\' OR type = \'lendTake\')',
-    );
+    final result = await db.rawQuery('''
+        SELECT SUM(t.amount) as total 
+        FROM transactions t 
+        LEFT JOIN $tableLend l ON t.LendID = l.Id 
+        WHERE (t.type = \'lendGive\' OR t.type = \'lendTake\') AND l.returned != 1
+      ''');
     double total = result[0]['total'] != null
         ? result[0]['total'] as double
         : 0.0;
     return total;
   }
 
-  Future<List<TransactionModel>> getAllTransactions() async {
+  Future<List<JoinedTransaction>> getAllTransactions() async {
     final db = await database;
-    final result = await db.query('transactions', orderBy: 'date DESC');
-    return result.map((e) => TransactionModel.fromMap(e)).toList();
+    // final result = await db.query('transactions', orderBy: 'date DESC');
+    final result = await db.rawQuery('''
+      SELECT 
+        t.id AS id,
+        t.title,
+        t.amount,
+        t.category,
+        t.date,
+        t.type,
+        t.LendID,
+        l.person_name,
+        l.return_date,
+        l.returned
+      FROM transactions t
+      LEFT JOIN $tableLend l ON t.LendID = l.Id
+      ORDER BY date DESC
+    ''');
+    print('result');
+    print(result);
+    return result.map((e) => JoinedTransaction.fromMap(e)).toList();
+  }
+
+  Future<List<JoinedTransaction>> getAllLends() async {
+    final db = await database;
+    final result = await db.rawQuery('''
+        SELECT 
+          t.id AS id,
+          t.title,
+          t.amount,
+          t.category,
+          t.date,
+          t.type,
+          t.LendID,
+          l.person_name,
+          l.return_date,
+          l.returned
+        FROM transactions t
+        LEFT JOIN $tableLend l ON t.LendID = l.Id
+        WHERE (t.type = \'lendGive\' OR t.type = \'lendTake\')
+        ORDER BY date DESC
+      ''');
+    print('result');
+    print(result);
+    return result.map((e) => JoinedTransaction.fromMap(e)).toList();
   }
 
   Future<int> deleteTransaction(int id) async {
     final db = await database;
     return await db.delete('transactions', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<int> returnLend(int id) async {
+    print('updateId');
+    print(id);
+    final db = await database;
+    return await db.update(
+      tableLend,
+      {'returned': 1, 'return_date': DateTime.now().toIso8601String()},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 
   Future close() async {

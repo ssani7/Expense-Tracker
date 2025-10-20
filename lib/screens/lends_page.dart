@@ -9,29 +9,28 @@ import 'package:provider/provider.dart';
 
 import '../providers/transaction_provider.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class LendsPage extends StatefulWidget {
+  const LendsPage({super.key});
 
   @override
-  State<StatefulWidget> createState() => _HomePageState();
+  State<StatefulWidget> createState() => _LendsPageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _LendsPageState extends State<LendsPage> {
   final dbHelper = DatabaseHelper();
   late Future transactionsFuture;
 
   @override
   void initState() {
     super.initState();
-    transactionsFuture = _loadTransactions();
+    transactionsFuture = _loadLends();
   }
 
-  Future _loadTransactions() {
+  Future _loadLends() {
     transactionsFuture = Provider.of<TransactionProvider>(
       context,
       listen: false,
-    ).getTransactions();
-    print('inside home');
+    ).getLendTransactions();
     return transactionsFuture;
   }
 
@@ -76,10 +75,12 @@ class _HomePageState extends State<HomePage> {
 
           return Consumer<TransactionProvider>(
             builder: (ctx, transactionProvider, child) {
-              final transactions = transactionProvider.transactions;
-              return transactions.isEmpty
-                  ? const Center(child: Text('No transactions yet.'))
-                  : HomeBody(transactions: transactions);
+              final lends = transactionProvider.lendTransactions;
+              print('lends');
+              print(lends);
+              return lends.isEmpty
+                  ? const Center(child: Text('No lends yet.'))
+                  : HomeBody(transactions: lends);
             },
           );
         },
@@ -110,7 +111,7 @@ class HomeBody extends StatelessWidget {
           const SummaryCard(),
           const SizedBox(height: 20),
           const Text(
-            'Recent Transactions',
+            'Recent Lends',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
@@ -121,6 +122,8 @@ class HomeBody extends StatelessWidget {
             itemCount: transactions.length,
             itemBuilder: (context, index) {
               final tx = transactions[index];
+              print('tx');
+              print(tx);
               return LendItem(lendTransaction: tx);
             },
           ),

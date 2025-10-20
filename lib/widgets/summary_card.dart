@@ -54,7 +54,7 @@ class _SummaryCardState extends State<SummaryCard> {
         return Consumer<TransactionProvider>(
           builder: (ctx, transactionProvider, child) {
             final total = transactionProvider.total;
-            final totalExpense = transactionProvider.expense;
+            final totalExpense = transactionProvider.expense * -1;
             final totalIncome = transactionProvider.deposit;
             final topay = transactionProvider.lends > 0;
             final totalLends =

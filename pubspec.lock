@@ -33,6 +33,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.13.0"
+  auto_size_text:
+    dependency: transitive
+    description:
+      name: auto_size_text
+      sha256: "3f5261cd3fb5f2a9ab4e2fc3fba84fd9fcaac8821f20a1d4e71f557521b22599"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -214,6 +222,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_grid_button:
+    dependency: transitive
+    description:
+      name: flutter_grid_button
+      sha256: "51e8a3838439ccdc33363a8fec2cb7575d63a3a2cf37f189d110a05ae2740752"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -222,6 +238,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.0.0"
+  flutter_simple_calculator:
+    dependency: "direct main"
+    description:
+      name: flutter_simple_calculator
+      sha256: f88568cc8db0c8c865095b5ae4cbaa9faa67a230b4a353f07367a275902a7022
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.0"
   flutter_swipe_action_cell:
     dependency: "direct main"
     description:
@@ -387,6 +411,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.11.1"
+  math_expressions:
+    dependency: transitive
+    description:
+      name: math_expressions
+      sha256: "218dc65bed4726562bb31c53d8daa3cc824664b26fb72d77bc592757edf74ba0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.7.0"
   meta:
     dependency: transitive
     description:
@@ -475,6 +507,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.0"
+  petitparser:
+    dependency: transitive
+    description:
+      name: petitparser
+      sha256: "07c8f0b1913bcde1ff0d26e57ace2f3012ccbf2b204e070290dad3bb22797646"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.1.0"
   platform:
     dependency: transitive
     description:

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/transaction_provider.dart';
+import 'package:flutter_simple_calculator/flutter_simple_calculator.dart';
 
 class AddTransactionSheet extends StatefulWidget {
   final VoidCallback onTransactionAdded;
@@ -70,21 +71,9 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       lastDate: DateTime(2100),
     );
     if (date != null) {
-      final time = await showTimePicker(
-        context: context,
-        initialTime: const TimeOfDay(hour: 12, minute: 0),
-      );
-      if (time != null) {
-        setState(() {
-          _returnDate = DateTime(
-            date.year,
-            date.month,
-            date.day,
-            time.hour,
-            time.minute,
-          );
-        });
-      }
+      setState(() {
+        _returnDate = DateTime(date.year, date.month, date.day);
+      });
     }
   }
 
@@ -112,28 +101,6 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     'Income',
   ];
 
-  void _onCategoryChanged() {
-    final text = _categoryController.text;
-
-    // Check if the text matches any category
-    if (_categories.contains(text)) {
-      // If it does, and it's not already selected, select it
-      if (_selectedCategory != text) {
-        setState(() {
-          _selectedCategory = text;
-        });
-      }
-    } else {
-      // If the text does not match any category,
-      // and a chip is still selected, deselect it.
-      if (_selectedCategory != null) {
-        setState(() {
-          _selectedCategory = "";
-        });
-      }
-    }
-  }
-
   void _onCategorySelected(String category) {
     setState(() {
       // Check if the user is tapping the *already selected* chip
@@ -151,12 +118,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
 
   // ✅ Your provided function (unchanged, now fully working)
   Future<void> _saveTransaction() async {
-    // if (_formKey.currentState!.validate()) {
-
-    // }
-    print('iinsde save');
-    final newTx = TransactionModel(
-      title: _titleController.text.trim(),
+    final newTx = JoinedTransaction(
       category: _selectedCategory,
       date: _selectedDateTime.toIso8601String(),
       type: _transactionType,
@@ -165,11 +127,58 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
               _transactionType == TransactionTypes.lendGive)
           ? double.parse(_amountController.text) * -1
           : double.parse(_amountController.text),
+      person_name: _personNameController.text.trim(),
+      return_date: _returnDate?.toIso8601String(),
     );
 
     widget.onTransactionAdded();
     context.read<TransactionProvider>().addTransaction(newTx);
     Navigator.pop(context);
+  }
+
+  void _openCalculator() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        double currentValue = double.tryParse(_amountController.text) ?? 0.0;
+        return SizedBox(
+          height: MediaQuery.of(context).size.height * 0.75,
+          child: SimpleCalculator(
+            value: currentValue,
+            hideExpression: false,
+            hideSurroundingBorder: true,
+            autofocus: true,
+            theme: const CalculatorThemeData(
+              borderColor: Colors.black12,
+              displayColor: Colors.white,
+              displayStyle: TextStyle(fontSize: 48, color: Colors.black),
+              expressionColor: Colors.black26,
+              expressionStyle: TextStyle(fontSize: 24, color: Colors.grey),
+              operatorColor: Colors.green,
+              commandColor: Colors.orange,
+              numColor: Colors.white,
+              operatorStyle: TextStyle(fontSize: 28, color: Colors.white),
+              commandStyle: TextStyle(fontSize: 22, color: Colors.white),
+              numStyle: TextStyle(fontSize: 22, color: Colors.black),
+            ),
+            onChanged: (key, value, expression) {
+              // Called when any button is pressed, including "="
+              if (key == '=') {
+                setState(() {
+                  _amountController.text = value!.toStringAsFixed(2);
+                });
+                Navigator.pop(context);
+              }
+            },
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -287,6 +296,10 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                     IconButton(
                       onPressed: () => _increment(100),
                       icon: const Icon(Icons.add_circle_outline),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.calculate_rounded),
+                      onPressed: _openCalculator,
                     ),
                   ],
                 ),
