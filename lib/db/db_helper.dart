@@ -133,8 +133,12 @@ class DatabaseHelper {
       ORDER BY date DESC
     ''');
     print('result');
-    print(result);
-    return result.map((e) => JoinedTransaction.fromMap(e)).toList();
+    print(result.map((e) => JoinedTransaction.fromMap(e)));
+
+    List<JoinedTransaction> txs = result
+        .map((e) => JoinedTransaction.fromMap(e))
+        .toList();
+    return txs;
   }
 
   Future<List<JoinedTransaction>> getAllLends() async {
@@ -156,7 +160,7 @@ class DatabaseHelper {
         WHERE (t.type = \'lendGive\' OR t.type = \'lendTake\')
         ORDER BY date DESC
       ''');
-    print('result');
+    print('lends');
     print(result);
     return result.map((e) => JoinedTransaction.fromMap(e)).toList();
   }

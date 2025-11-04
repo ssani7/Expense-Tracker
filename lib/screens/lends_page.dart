@@ -108,7 +108,7 @@ class HomeBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SummaryCard(),
+          const SummaryCard(bgColor: Colors.indigo),
           const SizedBox(height: 20),
           const Text(
             'Recent Lends',

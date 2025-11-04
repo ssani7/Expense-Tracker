@@ -5,7 +5,8 @@ import 'package:intl/intl.dart';
 import '../providers/transaction_provider.dart';
 
 class SummaryCard extends StatefulWidget {
-  const SummaryCard({super.key});
+  final Color bgColor;
+  const SummaryCard({super.key, required this.bgColor});
 
   @override
   State<SummaryCard> createState() => _SummaryCardState();
@@ -38,99 +39,84 @@ class _SummaryCardState extends State<SummaryCard> {
   Widget build(BuildContext context) {
     final bdFormat = NumberFormat.currency(locale: 'en_BD', symbol: '৳');
 
-    return FutureBuilder(
-      future: totalFuture,
-      builder: (ctx, snapshot) {
-        // Show a loading spinner while waiting for data.
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    return Consumer<TransactionProvider>(
+      builder: (ctx, transactionProvider, child) {
+        final total = transactionProvider.total;
+        final totalExpense = transactionProvider.expense * -1;
+        final totalIncome = transactionProvider.deposit;
+        final topay = transactionProvider.lends > 0;
+        final totalLends =
+            transactionProvider.lends *
+            (topay || transactionProvider.lends == 0 ? 1 : -1);
 
-        // Show an error message if something went wrong.
-        if (snapshot.hasError) {
-          return Center(child: Text('An error occurred: ${snapshot.error}'));
-        }
+        return Stack(
+          children: [
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              elevation: 3,
+              color: widget.bgColor,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Total Balance",
+                      style: TextStyle(color: Colors.white70, fontSize: 16),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      bdFormat.format(total),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 16),
 
-        return Consumer<TransactionProvider>(
-          builder: (ctx, transactionProvider, child) {
-            final total = transactionProvider.total;
-            final totalExpense = transactionProvider.expense * -1;
-            final totalIncome = transactionProvider.deposit;
-            final topay = transactionProvider.lends > 0;
-            final totalLends =
-                transactionProvider.lends *
-                (topay || transactionProvider.lends == 0 ? 1 : -1);
-
-            return Stack(
-              children: [
-                Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 3,
-                  color: Colors.indigo,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          "Total Balance",
-                          style: TextStyle(color: Colors.white70, fontSize: 16),
+                        _SummaryItem(
+                          label: "Income",
+                          amount: bdFormat.format(totalIncome),
+                          color: Colors.greenAccent,
+                          icon: Icons.arrow_upward,
                         ),
-                        SizedBox(height: 8),
-                        Text(
-                          bdFormat.format(total),
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 16),
-
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _SummaryItem(
-                              label: "Income",
-                              amount: bdFormat.format(totalIncome),
-                              color: Colors.greenAccent,
-                              icon: Icons.arrow_upward,
-                            ),
-                            _SummaryItem(
-                              label: "Expense",
-                              amount: bdFormat.format(totalExpense),
-                              color: Colors.redAccent,
-                              icon: Icons.arrow_downward,
-                              rightEnd: true,
-                            ),
-                          ],
+                        _SummaryItem(
+                          label: "Expense",
+                          amount: bdFormat.format(totalExpense),
+                          color: Colors.redAccent,
+                          icon: Icons.arrow_downward,
+                          rightEnd: true,
                         ),
                       ],
                     ),
-                  ),
+                  ],
                 ),
-                Positioned(
-                  top: 20,
-                  right: 20,
-                  child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.end, // 👈 aligns text to the right
-                    children: [
-                      _SummaryItem(
-                        label: topay ? "Payable" : "Recieveavle",
-                        amount: bdFormat.format(totalLends),
-                        color: topay ? Colors.red : Colors.greenAccent,
-                        icon: Icons.arrow_upward,
-                        rightEnd: true,
-                      ),
-                    ],
+              ),
+            ),
+            Positioned(
+              top: 20,
+              right: 20,
+              child: Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment.end, // 👈 aligns text to the right
+                children: [
+                  _SummaryItem(
+                    label: topay ? "Payable" : "Recieveavle",
+                    amount: bdFormat.format(totalLends),
+                    color: topay ? Colors.red : Colors.greenAccent,
+                    icon: Icons.arrow_upward,
+                    rightEnd: true,
                   ),
-                ),
-              ],
-            );
-          },
+                ],
+              ),
+            ),
+          ],
         );
       },
     );

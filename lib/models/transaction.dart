@@ -127,4 +127,9 @@ class JoinedTransaction {
       LendID: joined.lendID,
     );
   }
+
+  // @override
+  // String toString() {
+  //   return 'JoinedTransaction{id: $id, amount: $amount, category: $category, date: $date}';
+  // }
 }

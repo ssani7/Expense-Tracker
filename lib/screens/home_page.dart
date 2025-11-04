@@ -1,7 +1,7 @@
 import 'package:expense_tracer/models/transaction.dart';
 import 'package:expense_tracer/widgets/lend_item.dart';
 import 'package:flutter/material.dart';
-import '../widgets/transaction_item.dart';
+import 'package:card_swiper/card_swiper.dart';
 import '../widgets/summary_card.dart';
 import '../db/db_helper.dart';
 import '../screens/add_transaction_page.dart';
@@ -77,6 +77,8 @@ class _HomePageState extends State<HomePage> {
           return Consumer<TransactionProvider>(
             builder: (ctx, transactionProvider, child) {
               final transactions = transactionProvider.transactions;
+              print('transactions');
+              print(transactions);
               return transactions.isEmpty
                   ? const Center(child: Text('No transactions yet.'))
                   : HomeBody(transactions: transactions);
@@ -98,6 +100,11 @@ class _HomePageState extends State<HomePage> {
 class HomeBody extends StatelessWidget {
   late List<JoinedTransaction> transactions = [];
 
+  List<Widget> cards = [
+    SummaryCard(bgColor: Colors.indigo),
+    SummaryCard(bgColor: Colors.pinkAccent),
+  ];
+
   HomeBody({super.key, required this.transactions});
 
   @override
@@ -107,7 +114,18 @@ class HomeBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SummaryCard(),
+          SizedBox(
+            height: 200, // 👈 give it a fixed height
+            child: Swiper(
+              itemBuilder: (BuildContext context, int index) {
+                return cards[index];
+              },
+              itemCount: cards.length,
+              itemWidth: MediaQuery.of(context).size.width - 52,
+              layout: SwiperLayout.STACK,
+            ),
+          ),
+          // const SummaryCard(),
           const SizedBox(height: 20),
           const Text(
             'Recent Transactions',
